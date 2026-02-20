@@ -1,0 +1,129 @@
+# noch nicht getestet. 20.02.2026
+
+esphome:
+  name: powerpanel
+  friendly_name: Powerpanel
+
+  on_boot:
+    then:
+      - delay: 500ms  # kurze Verzögerung, damit Touchcontroller Zeit hat
+      - component.update: main_display
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "Powerpanel Fallback"
+    password: "fallback123"
+
+logger:
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+# -------------------------------------------------
+# Home Assistant Switch einbinden
+# -------------------------------------------------
+switch:
+  - platform: homeassistant
+    id: arbeitsplatz_licht
+    entity_id: switch.arbeitsplatz_licht
+    on_state:
+      then:
+        - component.update: main_display  # Button bei Statusänderung aktualisieren
+
+# -------------------------------------------------
+# I2C für Touch
+# -------------------------------------------------
+i2c:
+  sda: 8
+  scl: 9
+  scan: true      # prüft, ob FT5x06 gefunden wird
+  frequency: 100kHz
+
+# -------------------------------------------------
+# Touchscreen (Polling)
+# -------------------------------------------------
+touchscreen:
+  - platform: ft5x06
+    id: touch
+    update_interval: 20ms  # Polling alle 20ms
+    # interrupt_pin: 4  # optional, nur wenn Board INT bereitstellt
+
+# -------------------------------------------------
+# Font
+# -------------------------------------------------
+font:
+  - file: "gfonts://Roboto"
+    id: font1
+    size: 40
+
+# -------------------------------------------------
+# Display
+# -------------------------------------------------
+display:
+  - platform: rpi_dpi_rgb
+    id: main_display
+    color_order: RGB
+    pclk_frequency: 16MHz
+    dimensions:
+      width: 800
+      height: 480
+    de_pin: 5
+    hsync_pin:
+      number: 46
+      ignore_strapping_warning: true
+    vsync_pin:
+      number: 3
+      ignore_strapping_warning: true
+    pclk_pin: 7
+    hsync_back_porch: 30
+    hsync_front_porch: 210
+    hsync_pulse_width: 30
+    vsync_back_porch: 4
+    vsync_front_porch: 4
+    vsync_pulse_width: 4
+    data_pins:
+      red:   [1, 2, 42, 41, 40]
+      green: [39, 0, 45, 48, 47, 21]
+      blue:  [14, 38, 18, 17, 10]
+
+    lambda: |-
+      it.fill(Color(0,0,0));
+      auto licht_state = id(arbeitsplatz_licht).state;
+      it.filled_rectangle(250, 150, 300, 150,
+                          licht_state ? Color(0,180,0) : Color(80,80,80));
+      it.print(400, 225, id(font1), Color(255,255,255),
+               TextAlign::CENTER, "LICHT");
+
+# -------------------------------------------------
+# Touch-Bereich für Button
+# -------------------------------------------------
+binary_sensor:
+  - platform: touchscreen
+    name: "Licht Button"
+    x_min: 250
+    x_max: 550
+    y_min: 150
+    y_max: 300
+    on_press:
+      then:
+        - homeassistant.service:
+            service: switch.toggle
+            data:
+              entity_id: switch.arbeitsplatz_licht

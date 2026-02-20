@@ -1,0 +1,32 @@
+esphome:
+  name: powerpanel
+  friendly_name: powerpanel
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "8HmyzFwhbcD993x9CpiyMGpnS1cx1NH/Q7ob9RozM9Y="
+
+ota:
+  - platform: esphome
+    password: "a66a46b14faf012962bb62822df0b261"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Powerpanel Fallback Hotspot"
+    password: "fL3BQczSG3zB"
+
+captive_portal:
+    

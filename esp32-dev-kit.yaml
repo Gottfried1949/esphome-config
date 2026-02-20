@@ -1,0 +1,57 @@
+esphome:
+  name: esp32-dev-kit
+  friendly_name: esp32 dev kit
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+  encryption:
+    key: "cKm48TAmchf8rGyZL83GCFvcUX52InFUOhWDCsikqC8="
+
+ota:
+  - platform: esphome
+    password: "4a1d10acb1b3ec1e3978ea5ae050b542"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "Esp32-Dev-Kit Fallback Hotspot"
+    password: "FZbcFealUVzc"
+
+captive_portal:
+
+one_wire:
+  - platform: gpio
+    pin: GPIO25
+    id: onewire_bus
+
+sensor:
+  - platform: dallas_temp
+    one_wire_id: onewire_bus
+    address: 0xc900000740b56e28
+    name: "DS18B20 Sensor 1"
+    update_interval: 10s
+
+  - platform: dallas_temp
+    one_wire_id: onewire_bus
+    address: 0xa60000073eef7628
+    name: "DS18B20 Sensor 2"
+    update_interval: 10s
+
+  - platform: dallas_temp
+    one_wire_id: onewire_bus
+    address: 0xc30000073fa9b628
+    name: "DS18B20 Sensor 3"
+    update_interval: 10s
+
+  - platform: dallas_temp
+    one_wire_id: onewire_bus
+    address: 0x130000073fe9ce28
+    name: "DS18B20 Sensor 4"
+    update_interval: 10s

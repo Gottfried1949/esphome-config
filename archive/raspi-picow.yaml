@@ -1,0 +1,65 @@
+esphome:
+  name: raspi-picow
+  friendly_name: raspi-picow
+
+rp2040:
+  board: rpipicow
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "AFfpNbajisZvNG04gD+jHzy6RIAFngHwbR604CdnbRI="
+
+ota:
+  - platform: esphome
+    password: "80a50ce04d06e4580724590c29a5adc7"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot in case wifi connection fails
+  ap:
+    ssid: "Raspi-Picow Fallback Hotspot"
+    password: "I6j71PG3b0lL"
+
+
+# Blinkfrequenz per Slider ändern
+# GPIO für LED
+output:
+  - platform: gpio
+    pin: 15
+    id: led_output
+    inverted: false
+
+# Globale Variablen
+globals:
+  - id: led_state
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+  - id: blink_interval
+    type: float
+    restore_value: yes
+    initial_value: '1.0'
+
+# Blink-Intervall
+interval:
+  - interval: 0.1s
+    then:
+      - lambda: |-
+          static float counter = 0.0;
+          counter += 0.1;
+          if (counter >= id(blink_interval)) {
+            id(led_state) = !id(led_state);
+            if (id(led_state)) {
+              id(led_output).turn_on();
+            } else {
+              id(led_output).turn_off();
+            }
+            counter = 0.0;
+          }
